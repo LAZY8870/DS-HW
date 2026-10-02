@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173d35">
+  <title>海大餐廳｜現場候位</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #173d35;
+      --muted: #65756d;
+      --paper: #f6f4ec;
+      --white: #fffefa;
+      --line: #d9ded3;
+      --green: #236c4e;
+      --lime: #d8ed91;
+      --orange: #e47c47;
+      --red: #a63f32;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background-color: var(--paper);
+      background-image: radial-gradient(#bec9b7 0.7px, transparent 0.7px);
+      background-size: 18px 18px;
+      font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    }
+    button, input { font: inherit; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 76px;
+      padding: 0 6vw;
+      color: var(--white);
+      background: var(--ink);
+      border-bottom: 4px solid var(--lime);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      width: 38px;
+      aspect-ratio: 1;
+      place-items: center;
+      color: var(--ink);
+      background: var(--lime);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .brand-name { font-size: 16px; font-weight: 800; }
+    .brand-sub { margin-top: 3px; color: #c5d1c9; font-size: 11px; }
+    .open-state { display: flex; align-items: center; gap: 8px; color: #e7f0df; font-size: 13px; }
+    .open-state::before { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); content: ""; }
+    main { width: min(1080px, 88vw); margin: 54px auto 72px; }
+    .intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+    .eyebrow { margin: 0 0 9px; color: var(--green); font-size: 12px; font-weight: 800; }
+    h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.2; }
+    .intro-note { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
+    .date-chip { flex: 0 0 auto; padding: 10px 13px; border: 1px solid var(--line); background: var(--white); color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); gap: 22px; align-items: start; }
+    .panel { background: var(--white); border: 1px solid var(--line); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 19px 22px; border-bottom: 1px solid var(--line); }
+    .panel-title { margin: 0; font-size: 16px; font-weight: 800; }
+    .section-index { color: var(--orange); font-size: 11px; font-weight: 900; }
+    .entry-body { padding: 24px 22px 22px; }
+    .field { display: block; margin-bottom: 18px; }
+    .field-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; }
+    .field input { width: 100%; height: 48px; padding: 0 13px; border: 1px solid #cbd3c8; border-radius: 0; outline: none; background: #fff; color: var(--ink); font-size: 15px; }
+    .field input:focus { border-color: var(--green); box-shadow: 0 0 0 2px #236c4e24; }
+    .field input::placeholder { color: #a5afa5; }
+    .submit-btn, .next-btn { display: flex; width: 100%; min-height: 49px; align-items: center; justify-content: center; gap: 9px; border: 0; cursor: pointer; font-weight: 800; }
+    .submit-btn { color: white; background: var(--green); }
+    .submit-btn:hover { background: #18543b; }
+    .form-message { min-height: 20px; margin: 12px 0 0; color: var(--red); font-size: 12px; }
+    .now-serving { min-height: 164px; padding: 20px 22px 22px; color: var(--white); background: var(--ink); }
+    .serving-label { display: flex; align-items: center; justify-content: space-between; color: #c5d1c9; font-size: 12px; }
+    .serving-number { margin: 11px 0 9px; color: var(--lime); font-size: 42px; font-weight: 900; line-height: 1; }
+    .serving-person { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    .serving-name { font-size: 20px; font-weight: 800; }
+    .serving-phone { color: #c5d1c9; font-size: 13px; }
+    .empty-serving { margin: 16px 0 0; color: #c5d1c9; font-size: 14px; }
+    .queue-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 22px; border-bottom: 1px solid var(--line); }
+    .queue-count { display: flex; align-items: baseline; gap: 7px; color: var(--muted); font-size: 12px; }
+    .queue-count strong { color: var(--ink); font-size: 22px; }
+    .next-btn { width: auto; min-height: 38px; padding: 0 16px; color: var(--ink); background: var(--lime); }
+    .next-btn:hover { background: #cbe57a; }
+    .next-btn:disabled { cursor: not-allowed; opacity: 0.48; }
+    .queue-head, .queue-row { display: grid; grid-template-columns: 55px minmax(0, 1fr) minmax(100px, 0.8fr); align-items: center; gap: 10px; padding: 13px 22px; }
+    .queue-head { color: var(--muted); background: #f7f8f3; font-size: 11px; }
+    .queue-row { min-height: 54px; border-top: 1px solid #e8ebe4; font-size: 13px; }
+    .queue-row:first-child { border-top: 0; }
+    .queue-no { color: var(--orange); font-size: 12px; font-weight: 900; }
+    .queue-name { overflow-wrap: anywhere; font-weight: 700; }
+    .queue-phone { color: var(--muted); font-variant-numeric: tabular-nums; }
+    .queue-empty { padding: 28px 20px; color: var(--muted); text-align: center; font-size: 13px; }
+    .privacy-note { margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
+    @media (max-width: 720px) {
+      .topbar { min-height: 66px; padding: 0 6vw; }
+      main { width: 88vw; margin-top: 34px; }
+      .intro { align-items: start; flex-direction: column; gap: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      .date-chip { align-self: start; }
+    }
+    @media (max-width: 390px) {
+      .queue-head, .queue-row { grid-template-columns: 40px minmax(0, 1fr) minmax(90px, 0.9fr); gap: 7px; padding-right: 14px; padding-left: 14px; }
+      .panel-head, .queue-toolbar { padding-right: 15px; padding-left: 15px; }
+      .entry-body, .now-serving { padding-right: 16px; padding-left: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">海大</div>
+      <div>
+        <div class="brand-name">海大餐廳</div>
+        <div class="brand-sub">NATIONAL TAIWAN OCEAN UNIVERSITY</div>
+      </div>
+    </div>
+    <div class="open-state">現場候位</div>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">DINING HALL · QUEUE DESK</p>
+        <h1 id="page-title">現場候位</h1>
+        <p class="intro-note">填寫聯絡資料，加入今日等候隊伍。</p>
+      </div>
+      <div class="date-chip" id="today-label"></div>
+    </section>
+
+    <div class="layout">
+      <section class="panel" aria-labelledby="entry-title">
+        <div class="panel-head">
+          <h2 class="panel-title" id="entry-title">登記候位</h2>
+          <span class="section-index">01 / 登記</span>
+        </div>
+        <form class="entry-body" id="queue-form">
+          <label class="field">
+            <span class="field-label">客人姓名</span>
+            <input id="customer-name" name="name" autocomplete="name" maxlength="40" placeholder="請輸入姓名" required>
+          </label>
+          <label class="field">
+            <span class="field-label">聯絡電話</span>
+            <input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="請輸入電話" required>
+          </label>
+          <button class="submit-btn" type="submit"><span aria-hidden="true">＋</span> 加入候位</button>
+          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+        </form>
+        <p class="privacy-note" style="margin: 0 22px 20px;">候位資料僅保存在此裝置的瀏覽器中。</p>
+      </section>
+
+      <section class="panel" aria-labelledby="queue-title">
+        <div class="panel-head">
+          <h2 class="panel-title" id="queue-title">排隊窗口</h2>
+          <span class="section-index">02 / 叫號</span>
+        </div>
+        <div class="now-serving" aria-live="polite">
+          <div class="serving-label"><span>目前叫號</span><span id="serving-status">尚未叫號</span></div>
+          <div id="serving-content"><p class="empty-serving">等待叫號中</p></div>
+        </div>
+        <div class="queue-toolbar">
+          <h3 class="panel-title" style="font-size: 14px;">等候名單</h3>
+          <div class="queue-count"><strong id="queue-count">0</strong><span>組等候</span></div>
+        </div>
+        <div class="queue-head" aria-hidden="true"><span>號碼</span><span>姓名</span><span>電話</span></div>
+        <div id="queue-list" aria-live="polite"></div>
+        <div style="padding: 14px 22px 18px; border-top: 1px solid var(--line);">
+          <button class="next-btn" id="next-button" type="button" disabled><span aria-hidden="true">→</span> 下一位</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "ntou-restaurant-queue-v1";
+    const form = document.querySelector("#queue-form");
+    const nameInput = document.querySelector("#customer-name");
+    const phoneInput = document.querySelector("#customer-phone");
+    const message = document.querySelector("#form-message");
+    const queueList = document.querySelector("#queue-list");
+    const queueCount = document.querySelector("#queue-count");
+    const nextButton = document.querySelector("#next-button");
+    const servingContent = document.querySelector("#serving-content");
+    const servingStatus = document.querySelector("#serving-status");
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (saved && Array.isArray(saved.waiting) && Number.isInteger(saved.nextNumber)) return saved;
+      } catch (error) {
+        console.warn("無法讀取已保存的候位資料", error);
+      }
+      return { waiting: [], current: null, nextNumber: 1 };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (error) {
+        message.textContent = "瀏覽器無法保存資料，請確認儲存空間設定。";
+      }
+    }
+
+    function makeTextElement(tag, className, text) {
+      const element = document.createElement(tag);
+      element.className = className;
+      element.textContent = text;
+      return element;
+    }
+
+    function render() {
+      queueCount.textContent = String(state.waiting.length);
+      nextButton.disabled = state.waiting.length === 0;
+      queueList.replaceChildren();
+
+      if (state.waiting.length === 0) {
+        queueList.append(makeTextElement("div", "queue-empty", "目前沒有等候客人"));
+      } else {
+        state.waiting.forEach((customer) => {
+          const row = document.createElement("div");
+          row.className = "queue-row";
+          row.append(
+            makeTextElement("span", "queue-no", `#${String(customer.number).padStart(2, "0")}`),
+            makeTextElement("span", "queue-name", customer.name),
+            makeTextElement("span", "queue-phone", customer.phone)
+          );
+          queueList.append(row);
+        });
+      }
+
+      if (state.current) {
+        servingStatus.textContent = "請至櫃檯";
+        servingContent.replaceChildren(
+          makeTextElement("div", "serving-number", `#${String(state.current.number).padStart(2, "0")}`)
+        );
+        const person = document.createElement("div");
+        person.className = "serving-person";
+        person.append(
+          makeTextElement("span", "serving-name", state.current.name),
+          makeTextElement("span", "serving-phone", state.current.phone)
+        );
+        servingContent.append(person);
+      } else {
+        servingStatus.textContent = "尚未叫號";
+        servingContent.replaceChildren(makeTextElement("p", "empty-serving", "等待叫號中"));
+      }
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const name = nameInput.value.trim();
+      const phone = phoneInput.value.trim();
+      if (!name || !phone) {
+        message.textContent = "請填寫姓名和電話。";
+        return;
+      }
+
+      state.waiting.push({ number: state.nextNumber++, name, phone });
+      saveState();
+      render();
+      message.textContent = `已加入候位，號碼 #${String(state.nextNumber - 1).padStart(2, "0")}`;
+      form.reset();
+      nameInput.focus();
+    });
+
+    nextButton.addEventListener("click", () => {
+      state.current = state.waiting.shift() || null;
+      saveState();
+      render();
+      message.textContent = state.current ? `已叫號 #${String(state.current.number).padStart(2, "0")}` : "目前沒有等候客人。";
+    });
+
+    document.querySelector("#today-label").textContent = new Intl.DateTimeFormat("zh-TW", {
+      year: "numeric", month: "long", day: "numeric", weekday: "long"
+    }).format(new Date());
+    render();
+  </script>
+</body>
+</html>
