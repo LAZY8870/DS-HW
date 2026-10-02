@@ -3,285 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#173d35">
-  <title>海大餐廳｜現場候位</title>
+  <meta name="theme-color" content="#eaf0f5">
+  <title>二元搜尋樹｜互動學習</title>
   <style>
-    :root {
-      color-scheme: light;
-      --ink: #173d35;
-      --muted: #65756d;
-      --paper: #f6f4ec;
-      --white: #fffefa;
-      --line: #d9ded3;
-      --green: #236c4e;
-      --lime: #d8ed91;
-      --orange: #e47c47;
-      --red: #a63f32;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--ink);
-      background-color: var(--paper);
-      background-image: radial-gradient(#bec9b7 0.7px, transparent 0.7px);
-      background-size: 18px 18px;
-      font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
-    }
-    button, input { font: inherit; }
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 76px;
-      padding: 0 6vw;
-      color: var(--white);
-      background: var(--ink);
-      border-bottom: 4px solid var(--lime);
-    }
-    .brand { display: flex; align-items: center; gap: 12px; }
-    .brand-mark {
-      display: grid;
-      width: 38px;
-      aspect-ratio: 1;
-      place-items: center;
-      color: var(--ink);
-      background: var(--lime);
-      font-size: 13px;
-      font-weight: 900;
-    }
-    .brand-name { font-size: 16px; font-weight: 800; }
-    .brand-sub { margin-top: 3px; color: #c5d1c9; font-size: 11px; }
-    .open-state { display: flex; align-items: center; gap: 8px; color: #e7f0df; font-size: 13px; }
-    .open-state::before { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); content: ""; }
-    main { width: min(1080px, 88vw); margin: 54px auto 72px; }
-    .intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
-    .eyebrow { margin: 0 0 9px; color: var(--green); font-size: 12px; font-weight: 800; }
-    h1 { margin: 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.2; }
-    .intro-note { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
-    .date-chip { flex: 0 0 auto; padding: 10px 13px; border: 1px solid var(--line); background: var(--white); color: var(--muted); font-size: 12px; }
-    .layout { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); gap: 22px; align-items: start; }
-    .panel { background: var(--white); border: 1px solid var(--line); }
-    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 19px 22px; border-bottom: 1px solid var(--line); }
-    .panel-title { margin: 0; font-size: 16px; font-weight: 800; }
-    .section-index { color: var(--orange); font-size: 11px; font-weight: 900; }
-    .entry-body { padding: 24px 22px 22px; }
-    .field { display: block; margin-bottom: 18px; }
-    .field-label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; }
-    .field input { width: 100%; height: 48px; padding: 0 13px; border: 1px solid #cbd3c8; border-radius: 0; outline: none; background: #fff; color: var(--ink); font-size: 15px; }
-    .field input:focus { border-color: var(--green); box-shadow: 0 0 0 2px #236c4e24; }
-    .field input::placeholder { color: #a5afa5; }
-    .submit-btn, .next-btn { display: flex; width: 100%; min-height: 49px; align-items: center; justify-content: center; gap: 9px; border: 0; cursor: pointer; font-weight: 800; }
-    .submit-btn { color: white; background: var(--green); }
-    .submit-btn:hover { background: #18543b; }
-    .form-message { min-height: 20px; margin: 12px 0 0; color: var(--red); font-size: 12px; }
-    .now-serving { min-height: 164px; padding: 20px 22px 22px; color: var(--white); background: var(--ink); }
-    .serving-label { display: flex; align-items: center; justify-content: space-between; color: #c5d1c9; font-size: 12px; }
-    .serving-number { margin: 11px 0 9px; color: var(--lime); font-size: 42px; font-weight: 900; line-height: 1; }
-    .serving-person { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-    .serving-name { font-size: 20px; font-weight: 800; }
-    .serving-phone { color: #c5d1c9; font-size: 13px; }
-    .empty-serving { margin: 16px 0 0; color: #c5d1c9; font-size: 14px; }
-    .queue-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 15px 22px; border-bottom: 1px solid var(--line); }
-    .queue-count { display: flex; align-items: baseline; gap: 7px; color: var(--muted); font-size: 12px; }
-    .queue-count strong { color: var(--ink); font-size: 22px; }
-    .next-btn { width: auto; min-height: 38px; padding: 0 16px; color: var(--ink); background: var(--lime); }
-    .next-btn:hover { background: #cbe57a; }
-    .next-btn:disabled { cursor: not-allowed; opacity: 0.48; }
-    .queue-head, .queue-row { display: grid; grid-template-columns: 55px minmax(0, 1fr) minmax(100px, 0.8fr); align-items: center; gap: 10px; padding: 13px 22px; }
-    .queue-head { color: var(--muted); background: #f7f8f3; font-size: 11px; }
-    .queue-row { min-height: 54px; border-top: 1px solid #e8ebe4; font-size: 13px; }
-    .queue-row:first-child { border-top: 0; }
-    .queue-no { color: var(--orange); font-size: 12px; font-weight: 900; }
-    .queue-name { overflow-wrap: anywhere; font-weight: 700; }
-    .queue-phone { color: var(--muted); font-variant-numeric: tabular-nums; }
-    .queue-empty { padding: 28px 20px; color: var(--muted); text-align: center; font-size: 13px; }
-    .privacy-note { margin: 14px 0 0; color: var(--muted); font-size: 11px; line-height: 1.6; }
-    @media (max-width: 720px) {
-      .topbar { min-height: 66px; padding: 0 6vw; }
-      main { width: 88vw; margin-top: 34px; }
-      .intro { align-items: start; flex-direction: column; gap: 14px; }
-      .layout { grid-template-columns: 1fr; }
-      .date-chip { align-self: start; }
-    }
-    @media (max-width: 390px) {
-      .queue-head, .queue-row { grid-template-columns: 40px minmax(0, 1fr) minmax(90px, 0.9fr); gap: 7px; padding-right: 14px; padding-left: 14px; }
-      .panel-head, .queue-toolbar { padding-right: 15px; padding-left: 15px; }
-      .entry-body, .now-serving { padding-right: 16px; padding-left: 16px; }
-    }
+    :root{color-scheme:light;--ink:#1d3546;--muted:#718696;--canvas:#dce5ed;--paper:#eef2f6;--blue:#2d7192;--teal:#258d81;--orange:#c66a26;--red:#be4b54;--line:#dce5eb;--shadow:0 3px 12px #29475d12,0 12px 28px #29475d0a}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--ink);background:var(--paper);font-family:"Microsoft JhengHei","PingFang TC",sans-serif}button,input{font:inherit}button{color:inherit}.page{width:min(1460px,100%);margin:auto;padding:20px 30px 34px}.toolbar,.actionbar,.tree-panel,.panel{background:#fff;border:1px solid #e1e8ed;border-radius:10px;box-shadow:var(--shadow)}
+    .toolbar{display:flex;min-height:64px;align-items:center;justify-content:space-between;gap:18px;padding:11px 18px}.brand{display:flex;align-items:center;gap:12px;min-width:0}.brand-mark{display:grid;width:36px;height:36px;flex:none;place-items:center;border-radius:8px;color:#fff;background:var(--ink);font-size:13px;font-weight:900}.brand-title{margin:0;font-size:16px;font-weight:900}.brand-sub{margin-top:3px;color:var(--muted);font-size:11px}.mode-wrap{display:flex;align-items:center;gap:12px}.mode-label,.group-label{color:var(--muted);font-size:12px}.segmented{display:inline-flex;gap:3px;padding:4px;border-radius:99px;background:#e6edf3}.segmented button{min-height:32px;padding:0 14px;border:0;border-radius:99px;background:transparent;cursor:pointer;font-size:12px;font-weight:700}.segmented button[aria-pressed=true]{background:#fff;box-shadow:0 1px 5px #29475d1a}
+    .actionbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px;padding:12px 16px}.examples{display:flex;min-width:0;flex-wrap:wrap;align-items:center;gap:6px}.chip{min-height:30px;padding:0 11px;border:1px solid #e0e8ee;border-radius:99px;background:#edf2f6;cursor:pointer;font-size:11px;white-space:nowrap}.chip:hover{border-color:#b6c8d4;background:#e4edf3}.input-wrap{display:flex;flex:0 0 min(340px,42vw);gap:7px}.value-input{width:100%;min-width:0;height:40px;padding:0 12px;border:1px solid #ccd8e1;border-radius:6px;outline:none;background:var(--canvas);color:var(--ink);font-variant-numeric:tabular-nums}.value-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #2d71921c}.run-button,.play-button,.reset-button,.step-button{min-height:38px;padding:0 13px;border:0;border-radius:6px;background:#e4ebf1;cursor:pointer;font-size:12px;font-weight:800;white-space:nowrap}.run-button{color:white;background:var(--blue)}.run-button:hover{background:#235f7d}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) 286px;gap:14px;margin-top:14px}.tree-panel{min-width:0;padding:14px}.panel-heading{display:flex;min-height:26px;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.panel-heading h2{margin:0;font-size:13px;font-weight:800}.panel-meta{color:var(--muted);font-size:11px;white-space:nowrap}.tree-stage{display:grid;min-height:410px;overflow:auto;place-items:center;border:1px solid #d0dbe4;border-radius:6px;background:var(--canvas);scrollbar-color:#9fadb8 transparent}.tree-stage svg{display:block;width:100%;min-width:660px;height:410px;overflow:visible}.edge{stroke:#b9c8d3;stroke-width:2.2}.edge.hot{stroke:var(--orange);stroke-width:3.5}.node-circle{fill:#fff;stroke:#c6d4df;stroke-width:2;filter:drop-shadow(0 2px 1px #29475d10)}.node-circle.hot{fill:#ffeec5;stroke:var(--orange);stroke-width:3}.node-circle.found{fill:#d9f2e9;stroke:var(--teal);stroke-width:3}.node-circle.removed{fill:#ffe3e1;stroke:var(--red);stroke-width:3}.node-text{fill:var(--ink);font-size:15px;font-weight:800;text-anchor:middle;dominant-baseline:central;pointer-events:none}.empty-tree{fill:#6e8292;font-size:16px;text-anchor:middle;dominant-baseline:central}.legend{display:flex;flex-wrap:wrap;gap:15px;padding:12px 0 5px;color:var(--muted);font-size:11px}.legend-item{display:inline-flex;align-items:center;gap:6px}.legend-dot{width:9px;height:9px;border:2px solid var(--orange);border-radius:50%}.legend-dot.found{border-color:var(--teal);background:#d9f2e9}.legend-dot.removed{border-color:var(--red);background:#ffe3e1}
+    .playback{display:flex;align-items:center;gap:8px;padding-top:8px}.step-button{min-width:77px}.step-button:disabled{cursor:not-allowed;opacity:.5}.play-button{color:white;background:var(--ink)}.reset-button{margin-left:auto}.progress{height:5px;flex:1;overflow:hidden;border-radius:5px;background:#e5ebef}.progress-fill{width:0;height:100%;background:var(--orange);transition:width .2s ease}.step-count{color:var(--muted);font-size:11px;white-space:nowrap}.side-panel{display:flex;min-width:0;flex-direction:column;gap:14px}.panel{padding:14px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:10px 0 12px}.stat{min-height:38px;padding:7px 9px;border-radius:6px;background:#e7edf2;color:var(--muted);font-size:10px}.stat strong{margin-left:5px;color:var(--ink);font-size:17px;font-variant-numeric:tabular-nums}.small-label{display:block;margin:11px 0 5px;color:var(--muted);font-size:10px}.value-strip{min-height:34px;padding:9px 10px;overflow-wrap:anywhere;border-radius:6px;background:var(--canvas);color:var(--ink);font-size:12px;font-weight:800;line-height:1.4}.state-note{margin:8px 0 0;color:var(--muted);font-size:10px;line-height:1.6}.history-panel{display:flex;max-height:342px;min-height:216px;flex-direction:column}.history-list{display:flex;min-height:0;flex-direction:column;gap:4px;overflow:auto;padding-right:2px}.history-row{display:grid;grid-template-columns:8px 1fr auto;align-items:center;gap:7px;min-height:25px;padding:4px 7px;border-radius:4px;background:#e9eef3;color:#52697a;font-size:10px}.history-row.active{outline:2px solid #a8bfcd;background:#dce7ee}.history-kind{font-size:9px;font-weight:900}.history-kind.insert{color:var(--teal)}.history-kind.delete{color:var(--orange)}.history-kind.search{color:var(--blue)}.history-kind.info{color:#78909f}.history-size{color:#8193a0;font-size:9px}.traversal{margin-top:10px;padding-top:10px;border-top:1px solid #e4e9ed}.traversal-buttons{display:flex;flex-wrap:wrap;gap:5px}.traversal-buttons button{min-height:27px;padding:0 8px;border:1px solid #dfe7ec;border-radius:5px;background:#f2f5f7;cursor:pointer;font-size:10px}.readout{min-height:37px;margin-top:7px;padding:8px;border-radius:5px;background:#f2f5f7;color:var(--ink);font-size:10px;line-height:1.5;overflow-wrap:anywhere}.sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%);border:0}
+    @media(max-width:980px){.page{padding-right:18px;padding-left:18px}.workspace{grid-template-columns:minmax(0,1fr) 260px}.actionbar{align-items:stretch;flex-direction:column}.input-wrap{flex-basis:auto}}@media(max-width:720px){.page{padding:12px}.toolbar{align-items:flex-start;flex-direction:column}.mode-wrap{width:100%;justify-content:space-between}.workspace{grid-template-columns:minmax(0,1fr);gap:12px}.tree-stage{min-height:330px}.tree-stage svg{height:330px}.history-panel{max-height:270px}}@media(max-width:430px){.mode-wrap{align-items:flex-start;flex-direction:column;gap:7px}.input-wrap{flex-wrap:wrap}.input-wrap .value-input{flex:1 1 100%}.run-button{flex:1}.tree-panel{padding:10px}.tree-stage svg{min-width:570px}.playback{flex-wrap:wrap}.progress{flex-basis:35%}.reset-button{margin-left:0}}
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">海大</div>
-      <div>
-        <div class="brand-name">海大餐廳</div>
-        <div class="brand-sub">NATIONAL TAIWAN OCEAN UNIVERSITY</div>
-      </div>
-    </div>
-    <div class="open-state">現場候位</div>
-  </header>
-
-  <main>
-    <section class="intro" aria-labelledby="page-title">
-      <div>
-        <p class="eyebrow">DINING HALL · QUEUE DESK</p>
-        <h1 id="page-title">現場候位</h1>
-        <p class="intro-note">填寫聯絡資料，加入今日等候隊伍。</p>
-      </div>
-      <div class="date-chip" id="today-label"></div>
-    </section>
-
-    <div class="layout">
-      <section class="panel" aria-labelledby="entry-title">
-        <div class="panel-head">
-          <h2 class="panel-title" id="entry-title">登記候位</h2>
-          <span class="section-index">01 / 登記</span>
-        </div>
-        <form class="entry-body" id="queue-form">
-          <label class="field">
-            <span class="field-label">客人姓名</span>
-            <input id="customer-name" name="name" autocomplete="name" maxlength="40" placeholder="請輸入姓名" required>
-          </label>
-          <label class="field">
-            <span class="field-label">聯絡電話</span>
-            <input id="customer-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="請輸入電話" required>
-          </label>
-          <button class="submit-btn" type="submit"><span aria-hidden="true">＋</span> 加入候位</button>
-          <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
-        </form>
-        <p class="privacy-note" style="margin: 0 22px 20px;">候位資料僅保存在此裝置的瀏覽器中。</p>
-      </section>
-
-      <section class="panel" aria-labelledby="queue-title">
-        <div class="panel-head">
-          <h2 class="panel-title" id="queue-title">排隊窗口</h2>
-          <span class="section-index">02 / 叫號</span>
-        </div>
-        <div class="now-serving" aria-live="polite">
-          <div class="serving-label"><span>目前叫號</span><span id="serving-status">尚未叫號</span></div>
-          <div id="serving-content"><p class="empty-serving">等待叫號中</p></div>
-        </div>
-        <div class="queue-toolbar">
-          <h3 class="panel-title" style="font-size: 14px;">等候名單</h3>
-          <div class="queue-count"><strong id="queue-count">0</strong><span>組等候</span></div>
-        </div>
-        <div class="queue-head" aria-hidden="true"><span>號碼</span><span>姓名</span><span>電話</span></div>
-        <div id="queue-list" aria-live="polite"></div>
-        <div style="padding: 14px 22px 18px; border-top: 1px solid var(--line);">
-          <button class="next-btn" id="next-button" type="button" disabled><span aria-hidden="true">→</span> 下一位</button>
-        </div>
-      </section>
+  <main class="page">
+    <header class="toolbar"><div class="brand"><div class="brand-mark" aria-hidden="true">BST</div><div><h1 class="brand-title">二元搜尋樹</h1><div class="brand-sub">BINARY SEARCH TREE · 互動操作與走訪</div></div></div><div class="mode-wrap"><span class="mode-label">模式</span><div class="segmented" role="group" aria-label="操作模式"><button id="demo-mode" type="button" aria-pressed="true">演示模式</button><button id="free-mode" type="button" aria-pressed="false">闖關模式</button></div></div></header>
+    <section class="actionbar" aria-label="操作控制"><div class="examples" id="examples"></div><form class="input-wrap" id="operation-form"><label class="sr-only" for="value-input">輸入數字，可輸入多個數字並以空格或逗號分隔</label><input class="value-input" id="value-input" inputmode="numeric" autocomplete="off" placeholder="輸入數字，例如 11 47 85"><div class="segmented" role="group" aria-label="選擇操作"><button type="button" data-operation="insert" aria-pressed="true">插入</button><button type="button" data-operation="search" aria-pressed="false">搜尋</button><button type="button" data-operation="delete" aria-pressed="false">刪除</button></div><button class="run-button" type="submit">執行</button></form></section>
+    <div class="workspace">
+      <section class="tree-panel" aria-labelledby="tree-title"><div class="panel-heading"><h2 id="tree-title">二元搜尋樹</h2><span class="panel-meta" id="tree-meta">節點 0 · 高度 0</span></div><div class="tree-stage" id="tree-stage" role="img" aria-label="二元搜尋樹圖形"><svg id="tree-svg" viewBox="0 0 720 410" aria-hidden="true"></svg></div><div class="legend" aria-label="圖示說明"><span class="legend-item"><i class="legend-dot" aria-hidden="true"></i>目前比較路徑</span><span class="legend-item"><i class="legend-dot found" aria-hidden="true"></i>搜尋命中</span><span class="legend-item"><i class="legend-dot removed" aria-hidden="true"></i>已刪除</span></div><div class="playback" aria-label="步驟控制"><button class="step-button" id="previous-button" type="button">← 上一步</button><button class="step-button" id="next-button" type="button">下一步 →</button><button class="play-button" id="play-button" type="button">▶ 自動播放</button><button class="reset-button" id="reset-button" type="button">↺ 重置</button><div class="progress"><div class="progress-fill" id="progress-fill"></div></div><span class="step-count" id="step-count">0 / 0</span></div></section>
+      <aside class="side-panel"><section class="panel" aria-labelledby="state-title"><div class="panel-heading"><h2 id="state-title">樹的狀態</h2><span class="panel-meta" id="mode-indicator">演示</span></div><div class="stats"><div class="stat">節點數<strong id="node-count">0</strong></div><div class="stat">樹高<strong id="tree-height">0</strong></div></div><span class="small-label">中序走訪（左 → 根 → 右）</span><div class="value-strip" id="inorder-result">—</div><p class="state-note" id="state-note">BST 規則：左子樹小於根，右子樹大於根。</p></section>
+        <section class="panel history-panel" aria-labelledby="history-title"><div class="panel-heading"><h2 id="history-title">操作歷程</h2><span class="panel-meta" id="history-total">0 步</span></div><div class="history-list" id="history-list" aria-live="polite"></div><div class="traversal"><span class="small-label">其他走訪方式</span><div class="traversal-buttons"><button type="button" data-traversal="preorder">前序</button><button type="button" data-traversal="postorder">後序</button><button type="button" data-traversal="levelorder">層序</button></div><div class="readout" id="traversal-result" aria-live="polite">選擇走訪方式以查看節點順序。</div></div></section></aside>
     </div>
   </main>
-
   <script>
-    const STORAGE_KEY = "ntou-restaurant-queue-v1";
-    const form = document.querySelector("#queue-form");
-    const nameInput = document.querySelector("#customer-name");
-    const phoneInput = document.querySelector("#customer-phone");
-    const message = document.querySelector("#form-message");
-    const queueList = document.querySelector("#queue-list");
-    const queueCount = document.querySelector("#queue-count");
-    const nextButton = document.querySelector("#next-button");
-    const servingContent = document.querySelector("#serving-content");
-    const servingStatus = document.querySelector("#serving-status");
-
-    let state = loadState();
-
-    function loadState() {
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        if (saved && Array.isArray(saved.waiting) && Number.isInteger(saved.nextNumber)) return saved;
-      } catch (error) {
-        console.warn("無法讀取已保存的候位資料", error);
-      }
-      return { waiting: [], current: null, nextNumber: 1 };
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      } catch (error) {
-        message.textContent = "瀏覽器無法保存資料，請確認儲存空間設定。";
-      }
-    }
-
-    function makeTextElement(tag, className, text) {
-      const element = document.createElement(tag);
-      element.className = className;
-      element.textContent = text;
-      return element;
-    }
-
-    function render() {
-      queueCount.textContent = String(state.waiting.length);
-      nextButton.disabled = state.waiting.length === 0;
-      queueList.replaceChildren();
-
-      if (state.waiting.length === 0) {
-        queueList.append(makeTextElement("div", "queue-empty", "目前沒有等候客人"));
-      } else {
-        state.waiting.forEach((customer) => {
-          const row = document.createElement("div");
-          row.className = "queue-row";
-          row.append(
-            makeTextElement("span", "queue-no", `#${String(customer.number).padStart(2, "0")}`),
-            makeTextElement("span", "queue-name", customer.name),
-            makeTextElement("span", "queue-phone", customer.phone)
-          );
-          queueList.append(row);
-        });
-      }
-
-      if (state.current) {
-        servingStatus.textContent = "請至櫃檯";
-        servingContent.replaceChildren(
-          makeTextElement("div", "serving-number", `#${String(state.current.number).padStart(2, "0")}`)
-        );
-        const person = document.createElement("div");
-        person.className = "serving-person";
-        person.append(
-          makeTextElement("span", "serving-name", state.current.name),
-          makeTextElement("span", "serving-phone", state.current.phone)
-        );
-        servingContent.append(person);
-      } else {
-        servingStatus.textContent = "尚未叫號";
-        servingContent.replaceChildren(makeTextElement("p", "empty-serving", "等待叫號中"));
-      }
-    }
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const name = nameInput.value.trim();
-      const phone = phoneInput.value.trim();
-      if (!name || !phone) {
-        message.textContent = "請填寫姓名和電話。";
-        return;
-      }
-
-      state.waiting.push({ number: state.nextNumber++, name, phone });
-      saveState();
-      render();
-      message.textContent = `已加入候位，號碼 #${String(state.nextNumber - 1).padStart(2, "0")}`;
-      form.reset();
-      nameInput.focus();
-    });
-
-    nextButton.addEventListener("click", () => {
-      state.current = state.waiting.shift() || null;
-      saveState();
-      render();
-      message.textContent = state.current ? `已叫號 #${String(state.current.number).padStart(2, "0")}` : "目前沒有等候客人。";
-    });
-
-    document.querySelector("#today-label").textContent = new Intl.DateTimeFormat("zh-TW", {
-      year: "numeric", month: "long", day: "numeric", weekday: "long"
-    }).format(new Date());
-    render();
+    const DEMO_VALUES=[50,30,70,20,40,60,80];
+    const DEMO_ACTIONS=[{kind:"insert",value:65,label:"插入 65"},{kind:"search",value:40,label:"搜尋 40"},{kind:"search",value:55,label:"搜尋 55（不存在）"},{kind:"delete",value:20,label:"刪除 20（葉節點）"},{kind:"delete",value:70,label:"刪除 70（雙子節點）"}];
+    const state={frames:[],cursor:0,operation:"insert",mode:"demo",timer:null};
+    const svg=document.querySelector("#tree-svg"),input=document.querySelector("#value-input"),examples=document.querySelector("#examples");
+    function clone(value){return JSON.parse(JSON.stringify(value))}
+    function insertNode(root,value,path=[]){if(!root)return{root:{value,left:null,right:null},path:[...path,value],inserted:true};path.push(root.value);if(value===root.value)return{root,path,inserted:false};if(value<root.value){const result=insertNode(root.left,value,path);root.left=result.root;return{...result,root}}const result=insertNode(root.right,value,path);root.right=result.root;return{...result,root}}
+    function searchNode(root,value){const path=[];let cursor=root;while(cursor){path.push(cursor.value);if(cursor.value===value)return{found:true,path};cursor=value<cursor.value?cursor.left:cursor.right}return{found:false,path}}
+    function deleteNode(root,value,path=[]){if(!root)return{root:null,path,removed:false,replacement:null};path.push(root.value);if(value<root.value){const result=deleteNode(root.left,value,path);root.left=result.root;return{...result,root}}if(value>root.value){const result=deleteNode(root.right,value,path);root.right=result.root;return{...result,root}}if(!root.left)return{root:root.right,path,removed:true,replacement:null};if(!root.right)return{root:root.left,path,removed:true,replacement:null};let successor=root.right;while(successor.left)successor=successor.left;const replacement=successor.value;root.value=replacement;const result=deleteNode(root.right,replacement,[...path]);root.right=result.root;return{root,path,removed:true,replacement}}
+    function valuesInOrder(root,result=[]){if(!root)return result;valuesInOrder(root.left,result);result.push(root.value);valuesInOrder(root.right,result);return result}
+    function treeStats(root){if(!root)return{count:0,height:0};const left=treeStats(root.left),right=treeStats(root.right);return{count:1+left.count+right.count,height:1+Math.max(left.height,right.height)}}
+    function traverse(root,mode,result=[]){if(!root)return result;if(mode==="preorder")result.push(root.value);traverse(root.left,mode,result);if(mode==="inorder")result.push(root.value);traverse(root.right,mode,result);if(mode==="postorder")result.push(root.value);return result}
+    function pushFrame(frame){state.frames=state.frames.slice(0,state.cursor+1);state.frames.push({...frame,tree:clone(frame.tree)});state.cursor=state.frames.length-1;render()}
+    function addHistory(kind,label,tree,path=[],result="",removedValue=null){pushFrame({kind,label,tree,path,result,removedValue})}
+    function applyAction(kind,value){const tree=clone(state.frames[state.cursor].tree);if(kind==="insert"){const outcome=insertNode(tree,value);addHistory("insert",outcome.inserted?`插入 ${value}`:`${value} 已存在`,outcome.root,outcome.path,outcome.inserted?"插入完成":"BST 不允許重複值")}else if(kind==="search"){const outcome=searchNode(tree,value);addHistory("search",`搜尋 ${value}`,tree,outcome.path,outcome.found?`找到 ${value}`:`找不到 ${value}`)}else{const outcome=deleteNode(tree,value);const detail=!outcome.removed?`找不到 ${value}`:outcome.replacement===null?`已刪除 ${value}`:`以後繼節點 ${outcome.replacement} 取代 ${value}`;addHistory("delete",`刪除 ${value}`,outcome.root,outcome.path,detail,outcome.removed?value:null)}}
+    function parseValues(raw){const parts=raw.split(/[\s,，;；]+/).filter(Boolean);if(!parts.length)return{values:[],error:"請先輸入至少一個整數。"};if(parts.length>40)return{values:[],error:"一次最多操作 40 個數字。"};const values=parts.map(Number);if(values.some(value=>!Number.isSafeInteger(value)))return{values:[],error:"請輸入有效整數，並以空格或逗號分隔。"};return{values,error:""}}
+    function positions(root){const points=[];function visit(node,depth,min,max){if(!node)return;const x=(min+max)/2;points.push({value:node.value,x,y:52+depth*76});visit(node.left,depth+1,min,x);visit(node.right,depth+1,x,max)}visit(root,0,0,1);return points}
+    function svgElement(name,attrs={}){const element=document.createElementNS("http://www.w3.org/2000/svg",name);for(const[key,value]of Object.entries(attrs))element.setAttribute(key,String(value));return element}
+    function renderTree(frame){const points=positions(frame.tree),stats=treeStats(frame.tree),viewHeight=Math.max(410,90+stats.height*76);svg.setAttribute("viewBox",`0 0 720 ${viewHeight}`);svg.setAttribute("height",String(viewHeight));svg.replaceChildren();document.querySelector("#tree-stage").setAttribute("aria-label",stats.count?`二元搜尋樹，${stats.count} 個節點，高度 ${stats.height}`:"空的二元搜尋樹");if(!frame.tree){const empty=svgElement("text",{x:360,y:viewHeight/2,class:"empty-tree"});empty.textContent="空樹 · 輸入數字開始建立";svg.append(empty);return}const pointMap=new Map(points.map(point=>[point.value,point]));function drawEdges(node){if(!node)return;const parent=pointMap.get(node.value);for(const child of[node.left,node.right]){if(!child)continue;const childPoint=pointMap.get(child.value);svg.append(svgElement("line",{x1:20+parent.x*680,y1:parent.y,x2:20+childPoint.x*680,y2:childPoint.y,class:frame.path.includes(node.value)&&frame.path.includes(child.value)?"edge hot":"edge"}));drawEdges(child)}}drawEdges(frame.tree);for(const point of points){const group=svgElement("g",{transform:`translate(${20+point.x*680} ${point.y})`});let tone="";if(frame.removedValue===point.value)tone="removed";else if(frame.result.startsWith("找到")&&frame.path.at(-1)===point.value)tone="found";else if(frame.path.includes(point.value))tone="hot";group.append(svgElement("circle",{r:22,class:`node-circle ${tone}`}));const label=svgElement("text",{class:"node-text",y:1});label.textContent=String(point.value);group.append(label);svg.append(group)}}
+    function renderHistory(){const list=document.querySelector("#history-list");list.replaceChildren();state.frames.forEach((frame,index)=>{if(index===0)return;const row=document.createElement("div");row.className=`history-row${index===state.cursor?" active":""}`;const kind=document.createElement("span");kind.className=`history-kind ${frame.kind}`;kind.textContent=({insert:"＋",delete:"－",search:"⌕",info:"✓"})[frame.kind]||"·";const label=document.createElement("span");label.textContent=frame.label;const size=document.createElement("span");size.className="history-size";size.textContent=`n=${treeStats(frame.tree).count}`;row.append(kind,label,size);list.append(row)});list.scrollTop=list.scrollHeight;document.querySelector("#history-total").textContent=`${Math.max(0,state.frames.length-1)} 步`}
+    function render(){const frame=state.frames[state.cursor];if(!frame)return;const stats=treeStats(frame.tree),inorder=valuesInOrder(frame.tree);document.querySelector("#tree-meta").textContent=`節點 ${stats.count} · 高度 ${stats.height}`;document.querySelector("#node-count").textContent=String(stats.count);document.querySelector("#tree-height").textContent=String(stats.height);document.querySelector("#inorder-result").textContent=inorder.length?inorder.join("  "):"—";document.querySelector("#state-note").textContent=frame.result||"BST 規則：左子樹 < 根節點 < 右子樹。";document.querySelector("#previous-button").disabled=state.cursor===0;document.querySelector("#next-button").disabled=state.cursor>=state.frames.length-1;document.querySelector("#step-count").textContent=`${state.cursor} / ${Math.max(0,state.frames.length-1)}`;document.querySelector("#progress-fill").style.width=`${state.frames.length<2?0:state.cursor/(state.frames.length-1)*100}%`;document.querySelector("#mode-indicator").textContent=state.mode==="demo"?"演示":"闖關";renderTree(frame);renderHistory()}
+    function stopPlayback(){if(state.timer)clearInterval(state.timer);state.timer=null;document.querySelector("#play-button").textContent="▶ 自動播放"}
+    function reset(withDemo=state.mode==="demo"){stopPlayback();state.frames=[{kind:"info",label:"空樹",tree:null,path:[],result:"BST 規則：左子樹 < 根節點 < 右子節點。"}];state.cursor=0;if(withDemo){for(const value of DEMO_VALUES){const outcome=insertNode(clone(state.frames[state.cursor].tree),value);state.frames.push({kind:"insert",label:`插入 ${value}`,tree:clone(outcome.root),path:outcome.path,result:"插入完成"});state.cursor++}}document.querySelector("#traversal-result").textContent="選擇走訪方式以查看節點順序。";render()}
+    function renderExamples(){examples.replaceChildren();const label=document.createElement("span");label.className="group-label";label.textContent=state.mode==="demo"?"範例":"練習";examples.append(label);const actions=state.mode==="demo"?[...DEMO_ACTIONS]:[{kind:"insert",value:25,label:"插入 25"},{kind:"search",value:60,label:"尋找 60"},{kind:"delete",value:30,label:"刪除 30"}];for(const action of actions){const button=document.createElement("button");button.className="chip";button.type="button";button.textContent=action.label;button.addEventListener("click",()=>applyAction(action.kind,action.value));examples.append(button)}}
+    document.querySelectorAll("[data-operation]").forEach(button=>button.addEventListener("click",()=>{state.operation=button.dataset.operation;document.querySelectorAll("[data-operation]").forEach(item=>item.setAttribute("aria-pressed",String(item===button)))}));
+    document.querySelector("#operation-form").addEventListener("submit",event=>{event.preventDefault();const parsed=parseValues(input.value.trim());if(parsed.error){document.querySelector("#state-note").textContent=parsed.error;input.focus();return}stopPlayback();parsed.values.forEach(value=>applyAction(state.operation,value));input.value="";input.focus()});
+    document.querySelector("#previous-button").addEventListener("click",()=>{stopPlayback();state.cursor=Math.max(0,state.cursor-1);render()});document.querySelector("#next-button").addEventListener("click",()=>{stopPlayback();state.cursor=Math.min(state.frames.length-1,state.cursor+1);render()});document.querySelector("#reset-button").addEventListener("click",()=>reset());document.querySelector("#demo-mode").addEventListener("click",()=>{state.mode="demo";document.querySelector("#demo-mode").setAttribute("aria-pressed","true");document.querySelector("#free-mode").setAttribute("aria-pressed","false");reset(true);renderExamples()});document.querySelector("#free-mode").addEventListener("click",()=>{state.mode="free";document.querySelector("#demo-mode").setAttribute("aria-pressed","false");document.querySelector("#free-mode").setAttribute("aria-pressed","true");reset(false);renderExamples()});
+    document.querySelector("#play-button").addEventListener("click",()=>{if(state.timer){stopPlayback();return}if(state.cursor>=state.frames.length-1)state.cursor=0;document.querySelector("#play-button").textContent="Ⅱ 暫停";render();state.timer=setInterval(()=>{if(state.cursor>=state.frames.length-1){stopPlayback();return}state.cursor++;render()},700)});
+    document.querySelectorAll("[data-traversal]").forEach(button=>button.addEventListener("click",()=>{const mode=button.dataset.traversal,names={preorder:"前序（根 → 左 → 右）",postorder:"後序（左 → 右 → 根）"};let values;if(mode==="levelorder"){values=[];const queue=state.frames[state.cursor].tree?[state.frames[state.cursor].tree]:[];while(queue.length){const node=queue.shift();values.push(node.value);if(node.left)queue.push(node.left);if(node.right)queue.push(node.right)}}else values=traverse(state.frames[state.cursor].tree,mode);document.querySelector("#traversal-result").textContent=`${names[mode]||"層序（逐層由左至右）"}：${values.length?values.join(" → "):"空樹"}`}));
+    reset(true);renderExamples();
   </script>
 </body>
 </html>
