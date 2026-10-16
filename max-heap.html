@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eaf0f5">
+  <title>最大堆積樹｜互動學習</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d3546;
+      --muted: #718696;
+      --canvas: #dce5ed;
+      --paper: #eef2f6;
+      --blue: #2d7192;
+      --teal: #258d81;
+      --orange: #c66a26;
+      --red: #be4b54;
+      --line: #dce5eb;
+      --shadow: 0 3px 12px #29475d12, 0 12px 28px #29475d0a;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .page { width: min(1460px, 100%); margin: auto; padding: 16px 30px 30px; }
+    .nav { display: flex; justify-content: flex-end; gap: 18px; padding: 0 4px 10px; }
+    .nav a { color: var(--blue); font-size: 12px; font-weight: 700; text-decoration: none; }
+    .nav a:hover { text-decoration: underline; }
+    .toolbar, .actionbar, .tree-panel, .panel { background: #fff; border: 1px solid #e1e8ed; border-radius: 10px; box-shadow: var(--shadow); }
+    .toolbar { display: flex; min-height: 64px; align-items: center; justify-content: space-between; gap: 18px; padding: 11px 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 8px; color: #fff; background: var(--ink); font-size: 13px; font-weight: 900; }
+    .brand-title { margin: 0; font-size: 17px; font-weight: 900; }
+    .brand-sub { margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .rule { padding: 8px 12px; border-radius: 6px; background: #e7edf2; color: #52697a; font-size: 11px; }
+    .actionbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 12px; padding: 12px 16px; }
+    .samples { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .samples-label { margin-right: 4px; color: var(--muted); font-size: 11px; }
+    .sample { min-height: 29px; padding: 0 10px; border: 1px solid #e0e8ee; border-radius: 99px; background: #edf2f6; cursor: pointer; font-size: 11px; font-weight: 700; }
+    .sample:hover { background: #e4edf3; }
+    .input-wrap { display: flex; flex: 0 1 390px; gap: 7px; }
+    .value-input { width: 100%; min-width: 0; height: 40px; padding: 0 12px; border: 1px solid #ccd8e1; border-radius: 6px; outline: none; background: var(--canvas); color: var(--ink); font-variant-numeric: tabular-nums; }
+    .value-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px #2d71921c; }
+    .button { min-height: 38px; padding: 0 13px; border: 0; border-radius: 6px; background: #e4ebf1; cursor: pointer; font-size: 12px; font-weight: 800; white-space: nowrap; }
+    .button:hover:not(:disabled) { background: #d8e3eb; }
+    .button:disabled { cursor: not-allowed; opacity: .5; }
+    .button-primary { color: #fff; background: var(--blue); }
+    .button-primary:hover:not(:disabled) { background: #235f7d; }
+    .button-dark { color: #fff; background: var(--ink); }
+    .button-warn { color: #fff; background: var(--orange); }
+    .workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 24%); gap: 14px; margin-top: 12px; }
+    .tree-panel { min-width: 0; padding: 14px; }
+    .panel-heading { display: flex; min-height: 26px; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 9px; }
+    .panel-heading h2 { margin: 0; font-size: 13px; font-weight: 800; }
+    .meta { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .tree-stage { display: grid; height: clamp(400px, 62vh, 490px); overflow: auto; place-items: center; border: 1px solid #d0dbe4; border-radius: 6px; background: var(--canvas); }
+    .tree-stage svg { display: block; width: 100%; min-width: 650px; height: 100%; }
+    .edge { stroke: #b9c8d3; stroke-width: 2.2; }
+    .edge.changed { stroke: var(--orange); stroke-width: 3.5; }
+    .node { fill: #fff; stroke: #c6d4df; stroke-width: 2; filter: drop-shadow(0 2px 1px #29475d10); }
+    .node.changed { fill: #ffeec5; stroke: var(--orange); stroke-width: 3; }
+    .node.root { fill: #d9f2e9; stroke: var(--teal); stroke-width: 3; }
+    .node-label { fill: var(--ink); font-size: 15px; font-weight: 800; text-anchor: middle; dominant-baseline: central; pointer-events: none; }
+    .empty-label { fill: #6e8292; font-size: 16px; text-anchor: middle; dominant-baseline: central; }
+    .legend { display: flex; flex-wrap: wrap; gap: 15px; padding: 12px 0 5px; color: var(--muted); font-size: 11px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 9px; height: 9px; border: 2px solid var(--teal); border-radius: 50%; background: #d9f2e9; }
+    .dot.changed { border-color: var(--orange); background: #ffeec5; }
+    .playback { display: flex; align-items: center; gap: 8px; padding-top: 8px; }
+    .progress { height: 5px; flex: 1; overflow: hidden; border-radius: 5px; background: #e5ebef; }
+    .progress-fill { width: 0; height: 100%; background: var(--orange); transition: width .2s ease; }
+    .step-count { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .side { display: flex; min-width: 0; flex-direction: column; gap: 12px; }
+    .panel { min-width: 0; padding: 14px; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 10px 0 12px; }
+    .stat { min-height: 39px; padding: 7px 9px; border-radius: 6px; background: #e7edf2; color: var(--muted); font-size: 10px; }
+    .stat strong { margin-left: 5px; color: var(--ink); font-size: 17px; font-variant-numeric: tabular-nums; }
+    .label { display: block; margin: 10px 0 5px; color: var(--muted); font-size: 10px; }
+    .strip { min-height: 34px; padding: 9px 10px; overflow-wrap: anywhere; border-radius: 6px; background: var(--canvas); color: var(--ink); font-size: 12px; font-weight: 800; line-height: 1.5; }
+    .note { min-height: 32px; margin: 8px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    .log-panel { display: flex; max-height: 350px; min-height: 210px; flex-direction: column; }
+    .log { display: flex; min-height: 0; flex-direction: column; gap: 4px; overflow: auto; }
+    .log-row { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 7px; min-height: 26px; padding: 4px 7px; border-radius: 4px; background: #e9eef3; color: #52697a; font-size: 10px; }
+    .log-row.active { outline: 2px solid #a8bfcd; background: #dce7ee; }
+    .log-kind { color: var(--blue); font-weight: 900; }
+    .log-size { color: #8193a0; font-size: 9px; }
+    .message { min-height: 18px; margin: 7px 0 0; color: var(--red); font-size: 11px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); border: 0; }
+    @media (max-width: 980px) { .page { padding-right: 18px; padding-left: 18px; } .actionbar { align-items: stretch; flex-direction: column; } .input-wrap { flex-basis: auto; } }
+    @media (max-width: 720px) { .page { padding: 12px; } .toolbar { align-items: flex-start; flex-direction: column; } .rule { align-self: stretch; } .workspace { grid-template-columns: 1fr; gap: 12px; } .tree-stage { height: 340px; } .tree-stage svg { height: 340px; } .log-panel { max-height: 280px; } }
+    @media (max-width: 430px) { .input-wrap { flex-wrap: wrap; } .input-wrap .value-input { flex: 1 1 100%; } .input-wrap .button { flex: 1; } .tree-panel { padding: 10px; } .tree-stage svg { min-width: 560px; } .playback { flex-wrap: wrap; } .progress { flex-basis: 32%; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav" aria-label="其他作業"><a href="index.html">二元搜尋樹</a><a href="haida-restaurant-queue.html">海大餐廳排隊系統</a></nav>
+    <header class="toolbar">
+      <div class="brand"><div class="brand-mark" aria-hidden="true">MAX</div><div><h1 class="brand-title">最大堆積樹</h1><div class="brand-sub">MAX HEAP · 插入、上浮與取出最大值</div></div></div>
+      <div class="rule">父節點值 ≥ 子節點值</div>
+    </header>
+    <section class="actionbar" aria-label="堆積操作">
+      <div class="samples"><span class="samples-label">範例</span><button class="sample" id="sample-button" type="button">載入 42 18 35 9 12 27 31</button></div>
+      <form class="input-wrap" id="value-form"><label class="sr-only" for="value-input">輸入一個或多個整數，以空格或逗號分隔</label><input class="value-input" id="value-input" inputmode="numeric" autocomplete="off" placeholder="輸入數字，例如 42 18 35"><button class="button button-primary" type="submit">插入數值</button></form>
+    </section>
+    <div class="workspace">
+      <section class="tree-panel" aria-labelledby="tree-heading">
+        <div class="panel-heading"><h2 id="tree-heading">最大堆積樹</h2><span class="meta" id="tree-meta">節點 0 · 高度 0</span></div>
+        <div class="tree-stage" id="tree-stage" role="img" aria-label="最大堆積樹圖形"><svg id="heap-svg" viewBox="0 0 720 410" aria-hidden="true"></svg></div>
+        <div class="legend"><span class="legend-item"><i class="dot" aria-hidden="true"></i>根節點（目前最大值）</span><span class="legend-item"><i class="dot changed" aria-hidden="true"></i>本步交換節點</span></div>
+        <div class="playback" aria-label="操作步驟控制"><button class="button" id="previous-button" type="button" disabled>← 上一步</button><button class="button" id="next-button" type="button" disabled>下一步 →</button><button class="button button-dark" id="play-button" type="button" disabled>▶ 自動播放</button><button class="button" id="extract-button" type="button" disabled>取出最大值</button><button class="button" id="clear-button" type="button" disabled>清空</button><div class="progress"><div class="progress-fill" id="progress-fill"></div></div><span class="step-count" id="step-count">0 / 0</span></div>
+      </section>
+      <aside class="side">
+        <section class="panel" aria-labelledby="state-heading"><div class="panel-heading"><h2 id="state-heading">堆積狀態</h2><span class="meta" id="state-label">等待輸入</span></div><div class="stats"><div class="stat">節點數<strong id="node-count">0</strong></div><div class="stat">最大值<strong id="max-value">—</strong></div></div><span class="label">陣列表示（由上到下、由左到右）</span><div class="strip" id="array-view">空堆積</div><p class="note" id="operation-note" aria-live="polite">輸入整數即可建立最大堆積；相同數值也可以重複插入。</p><p class="message" id="form-message" role="status" aria-live="polite"></p></section>
+        <section class="panel log-panel" aria-labelledby="log-heading"><div class="panel-heading"><h2 id="log-heading">操作歷程</h2><span class="meta" id="log-count">0 步</span></div><div class="log" id="log-list" aria-live="polite"></div></section>
+      </aside>
+    </div>
+  </main>
+  <script>
+    const DEMO_VALUES = [42, 18, 35, 9, 12, 27, 31];
+    const state = { frames: [], cursor: 0, timer: null };
+    const input = document.querySelector("#value-input");
+    const svg = document.querySelector("#heap-svg");
+
+    function clone(values) { return [...values]; }
+
+    function addFrame(label, values, changed = [], note = "") {
+      state.frames = state.frames.slice(0, state.cursor + 1);
+      state.frames.push({ label, values: clone(values), changed: [...changed], note });
+      state.cursor = state.frames.length - 1;
+    }
+
+    function insertOne(heap, value, record) {
+      heap.push(value);
+      let index = heap.length - 1;
+      record(`插入 ${value}`, [index], `將 ${value} 放入陣列尾端。`);
+      while (index > 0) {
+        const parent = Math.floor((index - 1) / 2);
+        if (heap[parent] >= heap[index]) break;
+        [heap[parent], heap[index]] = [heap[index], heap[parent]];
+        record(`上浮交換 ${heap[parent]} ↔ ${heap[index]}`, [parent, index], `${heap[parent]} 大於父節點，向上交換。`);
+        index = parent;
+      }
+    }
+
+    function parseInput(value) {
+      const parts = value.trim().split(/[\s,，;；]+/).filter(Boolean);
+      if (!parts.length) return { values: [], error: "請先輸入至少一個整數。" };
+      if (parts.length > 100) return { values: [], error: "一次最多插入 100 個整數。" };
+      const values = parts.map(Number);
+      if (values.some((number) => !Number.isSafeInteger(number))) return { values: [], error: "請輸入有效整數，並以空格或逗號分隔。" };
+      return { values, error: "" };
+    }
+
+    function startOperation(label) {
+      stopPlayback();
+      const base = state.frames[state.cursor]?.values || [];
+      state.frames = [{ label: "目前堆積", values: clone(base), changed: [], note: "最大堆積規則：每個父節點都大於或等於其子節點。" }];
+      state.cursor = 0;
+      document.querySelector("#state-label").textContent = label;
+    }
+
+    function insertValues(values, label = "插入") {
+      startOperation(label);
+      const heap = clone(state.frames[0].values);
+      const record = (name, changed, note) => addFrame(name, heap, changed, note);
+      values.forEach((value) => insertOne(heap, value, record));
+      render();
+    }
+
+    function extractMax() {
+      const heap = clone(state.frames[state.cursor].values);
+      if (!heap.length) return;
+      startOperation("取出最大值");
+      const working = clone(heap);
+      const maximum = working[0];
+      if (working.length === 1) {
+        working.pop();
+        addFrame(`取出最大值 ${maximum}`, working, [], `堆積只剩一個值，已取出 ${maximum}。`);
+        render();
+        return;
+      }
+      working[0] = working.pop();
+      addFrame(`移除根節點 ${maximum}`, working, [0], `取出最大值 ${maximum}，將最後一個節點移到根。`);
+      let index = 0;
+      while (true) {
+        const left = index * 2 + 1;
+        const right = left + 1;
+        let largest = index;
+        if (left < working.length && working[left] > working[largest]) largest = left;
+        if (right < working.length && working[right] > working[largest]) largest = right;
+        if (largest === index) break;
+        [working[index], working[largest]] = [working[largest], working[index]];
+        addFrame(`下沉交換 ${working[index]} ↔ ${working[largest]}`, working, [index, largest], `子節點較大，向下交換以恢復最大堆積。`);
+        index = largest;
+      }
+      render();
+    }
+
+    function stopPlayback() {
+      if (state.timer) clearInterval(state.timer);
+      state.timer = null;
+      const button = document.querySelector("#play-button");
+      button.textContent = "▶ 自動播放";
+      button.setAttribute("aria-pressed", "false");
+    }
+
+    function position(index, count) {
+      const depth = Math.floor(Math.log2(index + 1));
+      const levelStart = 2 ** depth - 1;
+      const slot = index - levelStart;
+      const slotsAtLevel = 2 ** depth;
+      const x = ((slot + 0.5) / slotsAtLevel) * 680 + 20;
+      const y = 48 + depth * 76;
+      return { x, y, depth, levelStart, slotsAtLevel };
+    }
+
+    function svgElement(name, attrs = {}) {
+      const element = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([key, value]) => element.setAttribute(key, String(value)));
+      return element;
+    }
+
+    function renderTree(frame) {
+      const heap = frame.values;
+      const depth = heap.length ? Math.floor(Math.log2(heap.length)) : 0;
+      const height = Math.max(410, 100 + depth * 76);
+      svg.setAttribute("viewBox", `0 0 720 ${height}`);
+      svg.setAttribute("height", String(height));
+      svg.replaceChildren();
+      document.querySelector("#tree-stage").setAttribute("aria-label", heap.length ? `最大堆積樹，${heap.length} 個節點，最大值 ${heap[0]}` : "空的最大堆積樹");
+      if (!heap.length) {
+        const empty = svgElement("text", { x: 360, y: height / 2, class: "empty-label" });
+        empty.textContent = "空堆積 · 輸入數值開始";
+        svg.append(empty);
+        return;
+      }
+      const points = heap.map((_, index) => position(index, heap.length));
+      for (let index = 1; index < heap.length; index += 1) {
+        const parent = Math.floor((index - 1) / 2);
+        svg.append(svgElement("line", {
+          x1: points[parent].x, y1: points[parent].y,
+          x2: points[index].x, y2: points[index].y,
+          class: frame.changed.includes(parent) && frame.changed.includes(index) ? "edge changed" : "edge"
+        }));
+      }
+      heap.forEach((value, index) => {
+        const point = points[index];
+        const group = svgElement("g", { transform: `translate(${point.x} ${point.y})` });
+        const isChanged = frame.changed.includes(index);
+        group.append(svgElement("circle", { r: 22, class: `node${index === 0 ? " root" : ""}${isChanged ? " changed" : ""}` }));
+        const label = svgElement("text", { class: "node-label", y: 1 });
+        label.textContent = String(value);
+        group.append(label);
+        const indexLabel = svgElement("text", { class: "node-label", y: 36, style: "font-size: 9px; fill: #718696; font-weight: 500;" });
+        indexLabel.textContent = `[${index}]`;
+        group.append(indexLabel);
+        svg.append(group);
+      });
+    }
+
+    function renderLog() {
+      const list = document.querySelector("#log-list");
+      list.replaceChildren();
+      state.frames.forEach((frame, index) => {
+        if (index === 0) return;
+        const row = document.createElement("div");
+        row.className = `log-row${index === state.cursor ? " active" : ""}`;
+        const kind = document.createElement("span");
+        kind.className = "log-kind";
+        kind.textContent = frame.label.startsWith("下沉") ? "↓" : frame.label.startsWith("上浮") ? "↑" : "·";
+        const label = document.createElement("span");
+        label.textContent = frame.label;
+        const size = document.createElement("span");
+        size.className = "log-size";
+        size.textContent = `n=${frame.values.length}`;
+        row.append(kind, label, size);
+        list.append(row);
+      });
+      list.scrollTop = list.scrollHeight;
+      document.querySelector("#log-count").textContent = `${Math.max(0, state.frames.length - 1)} 步`;
+    }
+
+    function render() {
+      const frame = state.frames[state.cursor] || { values: [], changed: [], note: "輸入整數即可建立最大堆積。" };
+      const heap = frame.values;
+      document.querySelector("#tree-meta").textContent = `節點 ${heap.length} · 高度 ${heap.length ? Math.floor(Math.log2(heap.length)) + 1 : 0}`;
+      document.querySelector("#node-count").textContent = String(heap.length);
+      document.querySelector("#max-value").textContent = heap.length ? String(heap[0]) : "—";
+      document.querySelector("#array-view").textContent = heap.length ? `[ ${heap.join(" , ")} ]` : "空堆積";
+      document.querySelector("#operation-note").textContent = frame.note || "父節點索引為 ⌊(i−1)/2⌋；子節點索引為 2i+1 與 2i+2。";
+      document.querySelector("#previous-button").disabled = state.cursor === 0;
+      document.querySelector("#next-button").disabled = state.cursor >= state.frames.length - 1;
+      document.querySelector("#play-button").disabled = state.frames.length < 2;
+      document.querySelector("#extract-button").disabled = !heap.length;
+      document.querySelector("#clear-button").disabled = !heap.length;
+      document.querySelector("#step-count").textContent = `${state.cursor} / ${Math.max(0, state.frames.length - 1)}`;
+      document.querySelector("#progress-fill").style.width = `${state.frames.length < 2 ? 0 : state.cursor / (state.frames.length - 1) * 100}%`;
+      renderTree(frame);
+      renderLog();
+    }
+
+    document.querySelector("#value-form").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const parsed = parseInput(input.value);
+      const message = document.querySelector("#form-message");
+      if (parsed.error) {
+        message.textContent = parsed.error;
+        input.focus();
+        return;
+      }
+      message.textContent = "";
+      insertValues(parsed.values, "逐筆插入");
+      input.value = "";
+      input.focus();
+    });
+
+    document.querySelector("#sample-button").addEventListener("click", () => {
+      document.querySelector("#form-message").textContent = "";
+      const frames = [{ label: "目前堆積", values: [], changed: [], note: "批次建立會依序插入每個數值，並展示上浮交換。" }];
+      state.frames = frames;
+      state.cursor = 0;
+      const heap = [];
+      DEMO_VALUES.forEach((value) => insertOne(heap, value, (label, changed, note) => addFrame(label, heap, changed, note)));
+      document.querySelector("#state-label").textContent = "範例堆積";
+      render();
+    });
+
+    document.querySelector("#extract-button").addEventListener("click", extractMax);
+    document.querySelector("#clear-button").addEventListener("click", () => {
+      stopPlayback();
+      state.frames = [{ label: "空堆積", values: [], changed: [], note: "已清空。輸入整數即可重新建立最大堆積。" }];
+      state.cursor = 0;
+      document.querySelector("#state-label").textContent = "等待輸入";
+      document.querySelector("#form-message").textContent = "";
+      render();
+    });
+    document.querySelector("#previous-button").addEventListener("click", () => { stopPlayback(); state.cursor = Math.max(0, state.cursor - 1); render(); });
+    document.querySelector("#next-button").addEventListener("click", () => { stopPlayback(); state.cursor = Math.min(state.frames.length - 1, state.cursor + 1); render(); });
+    document.querySelector("#play-button").addEventListener("click", () => {
+      if (state.timer) { stopPlayback(); return; }
+      if (state.cursor >= state.frames.length - 1) state.cursor = 0;
+      const button = document.querySelector("#play-button");
+      button.textContent = "Ⅱ 暫停";
+      button.setAttribute("aria-pressed", "true");
+      render();
+      state.timer = setInterval(() => {
+        if (state.cursor >= state.frames.length - 1) { stopPlayback(); return; }
+        state.cursor += 1;
+        render();
+      }, 650);
+    });
+
+    state.frames = [{ label: "空堆積", values: [], changed: [], note: "最大堆積規則：每個父節點都大於或等於其子節點。" }];
+    render();
+  </script>
+</body>
+</html>
