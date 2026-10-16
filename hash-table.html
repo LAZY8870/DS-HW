@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e9f0ec">
+  <title>雜湊表｜除以 13 鏈結法</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #203b34;
+      --muted: #73867e;
+      --paper: #f0f4f1;
+      --white: #fff;
+      --green: #28745d;
+      --mint: #d8eee5;
+      --orange: #ce7440;
+      --line: #dce6e0;
+      --shadow: 0 3px 12px #24483b12, 0 12px 28px #24483b0a;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .page { width: min(1120px, 100%); margin: auto; padding: 18px 28px 34px; }
+    .nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 16px; padding: 0 4px 10px; }
+    .nav a { color: var(--green); font-size: 12px; font-weight: 700; text-decoration: none; }
+    .nav a:hover { text-decoration: underline; }
+    .header, .panel { border: 1px solid var(--line); border-radius: 9px; background: var(--white); box-shadow: var(--shadow); }
+    .header { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .mark { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 8px; color: #fff; background: var(--ink); font-size: 12px; font-weight: 900; }
+    h1 { margin: 0; font-size: 21px; }
+    .subtitle { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .formula { padding: 10px 13px; border-radius: 6px; background: #e8f0ec; color: var(--green); font-family: Consolas, monospace; font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: 16px; margin-top: 16px; align-items: start; }
+    .panel { min-width: 0; padding: 18px; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    h2 { margin: 0; font-size: 15px; }
+    .eyebrow { color: var(--orange); font-size: 10px; font-weight: 900; }
+    .instructions { margin: -4px 0 14px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .inputs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+    .value-field { display: flex; min-width: 0; flex-direction: column; gap: 5px; }
+    .value-field span { color: var(--muted); font-size: 10px; }
+    .value-field input { width: 100%; min-width: 0; height: 40px; padding: 0 8px; border: 1px solid #cfddd5; border-radius: 5px; outline: none; background: #fbfdfb; color: var(--ink); font-variant-numeric: tabular-nums; }
+    .value-field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #28745d1c; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .button { min-height: 39px; padding: 0 15px; border: 0; border-radius: 5px; background: #e7eee9; cursor: pointer; font-size: 12px; font-weight: 800; }
+    .button:hover:not(:disabled) { background: #dce8e1; }
+    .button:disabled { cursor: not-allowed; opacity: .5; }
+    .button-primary { color: #fff; background: var(--green); }
+    .button-primary:hover:not(:disabled) { background: #205e4b; }
+    .button-secondary { border: 1px solid var(--line); background: #fff; }
+    .message { min-height: 19px; margin: 10px 0 0; color: #a34035; font-size: 11px; }
+    .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 14px; }
+    .metric { min-width: 0; padding: 10px; border-radius: 6px; background: #e9f1ed; color: var(--muted); font-size: 10px; }
+    .metric strong { display: block; margin-top: 4px; color: var(--ink); font-size: 19px; font-variant-numeric: tabular-nums; }
+    .table-wrap { max-height: 590px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead { position: sticky; top: 0; z-index: 1; background: #edf3ef; }
+    th { padding: 10px 12px; color: var(--muted); font-size: 10px; font-weight: 800; text-align: left; }
+    td { padding: 8px 12px; border-top: 1px solid #e8efeb; vertical-align: middle; }
+    .bucket-index { width: 72px; color: var(--green); font-family: Consolas, monospace; font-weight: 800; }
+    .chain { display: flex; min-height: 27px; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .empty { color: #a4b2ab; }
+    .value { display: inline-flex; min-width: 31px; height: 26px; align-items: center; justify-content: center; padding: 0 7px; border: 1px solid #c8dfd4; border-radius: 5px; background: var(--mint); color: #205f4b; font-family: Consolas, monospace; font-weight: 800; }
+    .arrow { color: var(--orange); font-size: 12px; font-weight: 900; }
+    .count { color: var(--muted); font-size: 10px; text-align: right; white-space: nowrap; }
+    .hash-note { margin: 11px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
+    @media (max-width: 760px) { .page { padding: 12px; } .header { align-items: flex-start; flex-direction: column; } .layout { grid-template-columns: 1fr; } .table-wrap { max-height: 440px; } }
+    @media (max-width: 430px) { .inputs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; } .panel { padding: 14px; } .summary { gap: 5px; } .metric { padding: 8px; } .metric strong { font-size: 17px; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="nav" aria-label="其他作業">
+      <a href="index.html">二元搜尋樹</a>
+      <a href="max-heap.html">最大堆積樹</a>
+      <a href="haida-restaurant-queue.html">海大餐廳排隊系統</a>
+    </nav>
+    <header class="header">
+      <div class="brand"><div class="mark" aria-hidden="true">H(13)</div><div><h1>雜湊表：除以 13 鏈結法</h1><div class="subtitle">HASH TABLE · SEPARATE CHAINING</div></div></div>
+      <div class="formula">h(k) = ((k % 13) + 13) % 13</div>
+    </header>
+    <div class="layout">
+      <section class="panel" aria-labelledby="input-title">
+        <div class="panel-head"><h2 id="input-title">輸入 15 個數字</h2><span class="eyebrow">15 KEYS</span></div>
+        <p class="instructions">在每個欄位輸入一個整數。相同雜湊值會放在同一桶，依輸入順序串成鏈結。</p>
+        <form id="hash-form">
+          <div class="inputs" id="input-list"></div>
+          <div class="actions"><button class="button button-primary" type="submit">生成雜湊表</button><button class="button button-secondary" id="example-button" type="button">填入範例</button><button class="button button-secondary" id="clear-button" type="button">清空</button></div>
+          <p class="message" id="message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="panel" aria-labelledby="table-title">
+        <div class="panel-head"><h2 id="table-title">鏈結表</h2><span class="eyebrow">TABLE SIZE 13</span></div>
+        <div class="summary"><div class="metric">輸入數量<strong id="input-count">0 / 15</strong></div><div class="metric">使用桶位<strong id="used-count">0 / 13</strong></div><div class="metric">碰撞次數<strong id="collision-count">0</strong></div></div>
+        <div class="table-wrap"><table><thead><tr><th scope="col">索引</th><th scope="col">鏈結內容</th><th scope="col" style="text-align:right;">數量</th></tr></thead><tbody id="table-body"></tbody></table></div>
+        <p class="hash-note">每個數值 k 放入索引 h(k)。同一索引的數值以鏈結方式保留，不會互相覆蓋。</p>
+      </section>
+    </div>
+  </main>
+  <script>
+    const TABLE_SIZE = 13;
+    const INPUT_COUNT = 15;
+    const inputList = document.querySelector("#input-list");
+    const tableBody = document.querySelector("#table-body");
+    const form = document.querySelector("#hash-form");
+
+    for (let index = 0; index < INPUT_COUNT; index += 1) {
+      const label = document.createElement("label");
+      label.className = "value-field";
+      const caption = document.createElement("span");
+      caption.textContent = `數值 ${String(index + 1).padStart(2, "0")}`;
+      const input = document.createElement("input");
+      input.type = "number";
+      input.step = "1";
+      input.required = true;
+      input.inputMode = "numeric";
+      input.setAttribute("aria-label", `第 ${index + 1} 個數字`);
+      label.append(caption, input);
+      inputList.append(label);
+    }
+
+    function hash(value) {
+      return ((value % TABLE_SIZE) + TABLE_SIZE) % TABLE_SIZE;
+    }
+
+    function textElement(tag, className, text) {
+      const element = document.createElement(tag);
+      element.className = className;
+      element.textContent = text;
+      return element;
+    }
+
+    function renderTable(chains, inputCount) {
+      tableBody.replaceChildren();
+      let usedBuckets = 0;
+      let collisions = 0;
+      chains.forEach((chain, index) => {
+        if (chain.length) usedBuckets += 1;
+        collisions += Math.max(0, chain.length - 1);
+        const row = document.createElement("tr");
+        row.append(textElement("td", "bucket-index", String(index)));
+        const chainCell = document.createElement("td");
+        const chainDisplay = document.createElement("div");
+        chainDisplay.className = "chain";
+        if (!chain.length) {
+          chainDisplay.append(textElement("span", "empty", "空"));
+        } else {
+          chain.forEach((value, position) => {
+            if (position) chainDisplay.append(textElement("span", "arrow", "→"));
+            chainDisplay.append(textElement("span", "value", String(value)));
+          });
+        }
+        chainCell.append(chainDisplay);
+        row.append(chainCell, textElement("td", "count", String(chain.length)));
+        tableBody.append(row);
+      });
+      document.querySelector("#input-count").textContent = `${inputCount} / ${INPUT_COUNT}`;
+      document.querySelector("#used-count").textContent = `${usedBuckets} / ${TABLE_SIZE}`;
+      document.querySelector("#collision-count").textContent = String(collisions);
+    }
+
+    function generate(values) {
+      const chains = Array.from({ length: TABLE_SIZE }, () => []);
+      values.forEach((value) => chains[hash(value)].push(value));
+      renderTable(chains, values.length);
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const inputs = [...inputList.querySelectorAll("input")];
+      const values = inputs.map((input) => input.value.trim());
+      const message = document.querySelector("#message");
+      const emptyIndex = values.findIndex((value) => value === "");
+      if (emptyIndex !== -1) {
+        message.textContent = `請填寫第 ${emptyIndex + 1} 個數字。`;
+        inputs[emptyIndex].focus();
+        return;
+      }
+      const numbers = values.map(Number);
+      if (numbers.some((value) => !Number.isSafeInteger(value))) {
+        message.textContent = "每個欄位都必須是有效整數。";
+        return;
+      }
+      message.textContent = "";
+      generate(numbers);
+    });
+
+    document.querySelector("#example-button").addEventListener("click", () => {
+      const inputs = [...inputList.querySelectorAll("input")];
+      const example = [18, 41, 22, 44, 59, 32, 31, 73, 48, 56, 11, 29, 7, 20, 33];
+      inputs.forEach((input, index) => { input.value = String(example[index]); });
+      document.querySelector("#message").textContent = "";
+      generate(example);
+    });
+
+    document.querySelector("#clear-button").addEventListener("click", () => {
+      inputList.querySelectorAll("input").forEach((input) => { input.value = ""; });
+      document.querySelector("#message").textContent = "";
+      generate([]);
+      inputList.querySelector("input").focus();
+    });
+
+    generate([]);
+  </script>
+</body>
+</html>
